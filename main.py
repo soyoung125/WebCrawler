@@ -61,49 +61,65 @@ department2 = []  # 진료과 컬럼
 # Step 4. 주요 내용을 추출하여 리스트에 저장
 html = driver.page_source
 soup = BeautifulSoup(html, 'html.parser')
-view_list = soup.find('ul', 'descBox').find_all('li')
+pages = soup.find('div', 'pagingWrapSec').find_all('a')
 
-no = 1  # 게시물 번호용 변수
+global no
+no = 1  # 질병 번호용 변수
 
-for i in view_list:
-    try:
-        title = i.find('div', class_='contBox').find_all('strong')
-        all_title = i.find('dl').find_all('dt')
-        all_cont = i.find('dl').find_all('dd')
-    except:
-        continue
-    else:
-        # 질병 번호 리스트에 추가
-        no2.append(no)
-        print('1.번호:', no)
 
-        # 질병 명 리스트에 추가
-        name2.append(title[0].get_text())
-        print('2.질병명:', title[0].get_text())
+# 해당 페이지의 데이터 수집
+def disease_scraping():
+    view_list = soup.find('ul', 'descBox').find_all('li')
 
-        # 질병 증상
-        symptom = all_cont[0].get_text()
-        symptom2.append(symptom)
-        print('3.증상:', symptom)
+    for i in view_list:
+        try:
+            title = i.find('div', class_='contBox').find_all('strong')
+            all_title = i.find('dl').find_all('dt')
+            all_cont = i.find('dl').find_all('dd')
+        except:
+            continue
+        else:
+            # 질병 번호 리스트에 추가
+            no2.append(no)
+            print('1.번호:', no)
 
-        # 관련질병
-        diseases = all_cont[1].get_text()
-        diseases2.append(diseases)
-        print('4.관련질병:', diseases)
+            # 질병 명 리스트에 추가
+            name2.append(title[0].get_text())
+            print('2.질병명:', title[0].get_text())
 
-        # 진료과
-        department = all_cont[2].get_text()
-        department2.append(department)
-        print('5.진료과:', department)
+            # 질병 증상
+            symptom = all_cont[0].get_text()
+            symptom2.append(symptom)
+            print('3.증상:', symptom)
 
-        print("\n")
+            # 관련질병
+            diseases = all_cont[1].get_text()
+            diseases2.append(diseases)
+            print('4.관련질병:', diseases)
 
-        if no == cnt:
-            break
+            # 진료과
+            department = all_cont[2].get_text()
+            department2.append(department)
+            print('5.진료과:', department)
 
-        no += 1
+            print("\n")
+
+            if no == cnt:
+                break
+
+            no += 1
+
+
+# 페이지 이동
+for i in pages:
+    driver.find_element_by_link_text(i.get_text()).click()
+    html = driver.page_source
+    soup = BeautifulSoup(html, 'html.parser')
+    disease_scraping()
+
 
 # Step 5.출력 결과를 표(데이터 프레임) 형태로 만들기
+
 
 import openpyxl
 
