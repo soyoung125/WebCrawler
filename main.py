@@ -23,8 +23,8 @@ driver = webdriver.Chrome("c:/py_temp/chromedriver.exe")
 driver.get('https://www.amc.seoul.kr/asan/healthinfo/disease/diseaseSubmain.do')
 time.sleep(2)
 
-driver.maximize_window()
-time.sleep(2)
+# driver.maximize_window()
+# time.sleep(2)
 
 driver.find_element_by_class_name("menu3").click()
 # driver.find_element_by_class_name("listCon")
@@ -63,12 +63,12 @@ html = driver.page_source
 soup = BeautifulSoup(html, 'html.parser')
 pages = soup.find('div', 'pagingWrapSec').find_all('a')
 
-global no
-no = 1  # 질병 번호용 변수
+disease_no = 1  # 질병 번호용 변수
 
 
 # 해당 페이지의 데이터 수집
 def disease_scraping():
+    global disease_no
     view_list = soup.find('ul', 'descBox').find_all('li')
 
     for i in view_list:
@@ -80,34 +80,41 @@ def disease_scraping():
             continue
         else:
             # 질병 번호 리스트에 추가
-            no2.append(no)
-            print('1.번호:', no)
+            no2.append(disease_no)
+            print('1.번호:', disease_no)
 
             # 질병 명 리스트에 추가
             name2.append(title[0].get_text())
             print('2.질병명:', title[0].get_text())
 
             # 질병 증상
-            symptom = all_cont[0].get_text()
-            symptom2.append(symptom)
-            print('3.증상:', symptom)
+            if(all_title[0].get_text() == '증상'):
+                symptom = all_cont[0].get_text()
+                symptom2.append(symptom)
+                print('3.증상:', symptom)
+            else:
+                symptom2.append("")
 
             # 관련질병
-            diseases = all_cont[1].get_text()
-            diseases2.append(diseases)
-            print('4.관련질병:', diseases)
+            if (all_title[1].get_text() == '관련질환'):
+                diseases = all_cont[1].get_text()
+                diseases2.append(diseases)
+                print('4.관련질병:', diseases)
+            else:
+                diseases2.append('')
 
             # 진료과
-            department = all_cont[2].get_text()
-            department2.append(department)
-            print('5.진료과:', department)
+            # depm = all_title[2].get_text()
+            if len(all_title) > 2 and all_title[2].get_text() == '진료과':
+                department = all_cont[2].get_text()
+                department2.append(department)
+                print('5.진료과:', department)
+            else:
+                department2.append('')
 
             print("\n")
 
-            if no == cnt:
-                break
-
-            no += 1
+            disease_no += 1
 
 
 # 페이지 이동
