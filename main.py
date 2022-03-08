@@ -1,6 +1,8 @@
 # Step 1. 필요한 모듈과 라이브러리를 로딩하고 검색어를 입력 받습니다
 from bs4 import BeautifulSoup
 from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+from webdriver_manager.chrome import ChromeDriverManager
 import pandas as pd
 import time, sys, math, os
 
@@ -11,16 +13,19 @@ print("=" * 80)
 f_dir = 'c:\\py_temp\\'
 
 
+def set_chrome_driver():
+    chrome_options = webdriver.ChromeOptions()
+    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
+    return driver
+
+
 # Step 2. 크롬 드라이버를 설정하고 검색을 수행하여 View 메뉴 클릭
-driver = webdriver.Chrome("c:/py_temp/chromedriver.exe")
+driver = set_chrome_driver()
 
 driver.get('https://www.amc.seoul.kr/asan/healthinfo/disease/diseaseSubmain.do')
 time.sleep(2)
 
 driver.find_element_by_class_name("menu3").click()
-
-
-# Step 3.각 데이터 저장용 리스트 생성 후 자동 스크롤 다운 수행
 
 no2 = []  # 질병 번호 컬럼
 disease_type2 = []  # 질병 대분류 컬럼
@@ -28,9 +33,8 @@ name2 = []  # 질병명 컬럼
 symptom2 = []  # 질병 증상 컬럼
 diseases2 = []  # 관련질병 컬럼
 department2 = []  # 진료과 컬럼
+synonym2 = []  #동의어
 
-
-# Step 4. 주요 내용을 추출하여 리스트에 저장
 html = driver.page_source
 soup = BeautifulSoup(html, 'html.parser')
 pages = []
@@ -59,35 +63,44 @@ def disease_scraping():
 
             # 질병 대분류 리스트에 추가
             disease_type2.append((disease_type))
-            print('2. 대분류:', disease_type)
+            print('2.대분류:', disease_type)
 
             # 질병 명 리스트에 추가
-            name2.append(title[0].get_text())
-            print('3.질병명:', title[0].get_text())
+            title = title[0].get_text()
+            name2.append(' '.join(title.split()))
+            print('3.질병명:', ' '.join(title.split()))
 
             # 질병 증상
             if (all_title[0].get_text() == '증상'):
                 symptom = all_cont[0].get_text()
-                symptom2.append(symptom)
-                print('4.증상:', symptom)
+                symptom2.append(' '.join(symptom.split()))
+                print('4.증상:', ' '.join(symptom.split()))
             else:
                 symptom2.append("")
 
             # 관련질병
             if (all_title[1].get_text() == '관련질환'):
                 diseases = all_cont[1].get_text()
-                diseases2.append(diseases)
-                print('4.관련질병:', diseases)
+                diseases2.append(' '.join(diseases.split()))
+                print('4.관련질병:', ' '.join(diseases.split()))
             else:
                 diseases2.append('')
 
             # 진료과
             if len(all_title) > 2 and all_title[2].get_text() == '진료과':
                 department = all_cont[2].get_text()
-                department2.append(department)
-                print('5.진료과:', department)
+                department2.append(' '.join(department.split()))
+                print('5.진료과:', ' '.join(department.split()))
             else:
                 department2.append('')
+
+            # 진료과
+            if len(all_title) > 3 and all_title[3].get_text() == '동의어':
+                synonym = all_cont[3].get_text()
+                synonym2.append(' '.join(synonym.split()))
+                print('5.동의어:', ' '.join(synonym.split()))
+            else:
+                synonym2.append('')
 
             print("\n")
 
@@ -123,6 +136,7 @@ asan_diseases['질병명'] = pd.Series(name2)
 asan_diseases['증상'] = pd.Series(symptom2)
 asan_diseases['관련질환'] = pd.Series(diseases2)
 asan_diseases['진료과'] = pd.Series(department2)
+asan_diseases['동의어'] = pd.Series(synonym2)
 
 # Step 6. 저장될 파일위치와 이름을 지정한 후 csv , xls 파일로 저장하기
 n = time.localtime()
