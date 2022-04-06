@@ -45,9 +45,9 @@ disease_type = '' # 질환 대분류
 
 
 # 해당 페이지의 데이터 수집
-def disease_scraping():
+def disease_scraping(soup1):
     global disease_no
-    view_list = soup.find('ul', 'descBox').find_all('li')
+    view_list = soup1.find('ul', 'descBox').find_all('li')
 
     for i in view_list:
         try:
@@ -113,7 +113,7 @@ def move_pages():
         driver.find_element_by_link_text(p.get_text()).click()
         html = driver.page_source
         soup = BeautifulSoup(html, 'html.parser')
-        disease_scraping()
+        disease_scraping(soup)
 
 
 for i in tab_list:
