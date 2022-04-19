@@ -34,6 +34,7 @@ symptom2 = []  # 질병 증상 컬럼
 diseases2 = []  # 관련질병 컬럼
 department2 = []  # 진료과 컬럼
 synonym2 = []  #동의어
+link2 = [] #상세페이지 링크
 
 html = driver.page_source
 soup = BeautifulSoup(html, 'html.parser')
@@ -51,7 +52,7 @@ def disease_scraping(soup1):
 
     for i in view_list:
         try:
-            title = i.find('div', class_='contBox').find_all('strong')
+            title = i.find('div', class_='contBox').find('a')
             all_title = i.find('dl').find_all('dt')
             all_cont = i.find('dl').find_all('dd')
         except:
@@ -66,9 +67,9 @@ def disease_scraping(soup1):
             print('2.대분류:', disease_type)
 
             # 질병 명 리스트에 추가
-            title = title[0].get_text()
-            name2.append(' '.join(title.split()))
-            print('3.질병명:', ' '.join(title.split()))
+            title1 = title.get_text()
+            name2.append(' '.join(title1.split()))
+            print('3.질병명:', ' '.join(title1.split()))
 
             # 질병 증상
             if (all_title[0].get_text() == '증상'):
@@ -101,6 +102,10 @@ def disease_scraping(soup1):
                 print('5.동의어:', ' '.join(synonym.split()))
             else:
                 synonym2.append('')
+
+            link = driver.find_element_by_link_text(' '.join(title1.split())).get_attribute('href')
+            link2.append(' '.join(link.split()))
+            print('6.link: ', ' '.join(link.split()))
 
             print("\n")
 
@@ -137,6 +142,7 @@ asan_diseases['증상'] = pd.Series(symptom2)
 asan_diseases['관련질환'] = pd.Series(diseases2)
 asan_diseases['진료과'] = pd.Series(department2)
 asan_diseases['동의어'] = pd.Series(synonym2)
+asan_diseases['링크'] = pd.Series(link2)
 
 # Step 6. 저장될 파일위치와 이름을 지정한 후 csv , xls 파일로 저장하기
 n = time.localtime()
